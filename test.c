@@ -7,5 +7,5 @@ int main(){
     return 0;
 }
 
-// gcc test.c -o 
+// gcc test.c -o test
 // ./test
