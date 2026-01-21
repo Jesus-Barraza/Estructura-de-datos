@@ -1,6 +1,6 @@
-const int LED1 = 25;
-const int LED2 = 33;
-const int LED3 = 35;
+const int LED1 = 2;
+const int LED2 = 4;
+const int LED3 = 5;
 
 void setup() {
   // put your setup code here, to run once:
