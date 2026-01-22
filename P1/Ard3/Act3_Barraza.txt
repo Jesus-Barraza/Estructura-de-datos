@@ -1,0 +1,44 @@
+#include <DHT.h>
+#define DHTPIN 23  //pin digital, sensor de señal
+#define DHTTYPE DHT11 //modelo a usar lol
+
+#define temp_limit 26
+#define hum_limit 90
+
+DHT dht(DHTPIN, DHTTYPE); //requisitos de la librería
+
+int LEDs[] = {4, 18};
+int numLed = 2;
+
+void setup() {
+  // put your setup code here, to run once:
+  for (int i = 0; i < numLed; i++) {
+    pinMode(LEDs[i], OUTPUT);
+  }
+
+  Serial.begin(9600);
+  Serial.print("Sensor test");
+  dht.begin();
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  Serial.println("Temperature level: ");
+  Serial.println(dht.readTemperature());
+
+  Serial.println("Humidity level: ");
+  Serial.println(dht.readHumidity());
+
+  float hum = dht.readHumidity();
+  float temp = dht.readTemperature();
+
+  if (temp > temp_limit || hum > hum_limit) {
+    digitalWrite(LEDs[0], HIGH);
+    digitalWrite(LEDs[1], HIGH);
+  } else {
+    digitalWrite(LEDs[0], LOW);
+    digitalWrite(LEDs[1], LOW);
+  }
+
+  delay(2000);
+}
