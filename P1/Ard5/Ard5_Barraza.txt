@@ -1,0 +1,22 @@
+#define PIRsensor 34
+#define Buzzer 13
+
+const char melody[] = { "NOTE_C4" };
+int noteDuration[] = {500};
+
+void setup() {
+  pinMode(PIRsensor, INPUT);
+  Serial.begin(115200);
+}
+
+
+void loop() {
+  if (digitalRead(PIRsensor) == HIGH) {
+    tone(Buzzer, melody[0], noteDuration[0]);
+    noTone(Buzzer);
+    Serial.println("Zona sucia");
+  } else {
+    Serial.println("Zona limpia");
+  }
+  delay(500);
+}
