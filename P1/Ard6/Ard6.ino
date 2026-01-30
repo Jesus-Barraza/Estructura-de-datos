@@ -10,9 +10,8 @@ int noteDuration[] = {500};
 int LEDs[] = {32, 33, 34, 35};
 int numLeds = 4;
 
-//Componentes de la pantalla
-
 //Componentes del sensor de temperatura
+#include <DHT.h>
 #define DHTPIN 12
 #define DHTTYPE DHT11 
 DHT dht(DHTPIN, DHTTYPE); 
@@ -24,22 +23,52 @@ bool lastButton = HIGH;
 bool monitoreo = false;
 
 //componentes de la pantalla
-#define SCL 2
-#define SDA 4
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#define SCL 18
+#define SDA 19
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
 
 void setup() {
   pinMode(PIRsensor, INPUT);
+  for (int i = 0; i == numLeds; i++) {
+    pinMode(LEDs[i], OUTPUT);
+  }
+  pinMode(Buzzer, INPUT_PULLUP);
   Serial.begin(115200);
+
+  Wire.begin(SDA, SCL);
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.print("hola");
+
+  display.display();
 }
 
 void loop() {
-  if (digitalRead(PIRsensor) == HIGH) {
-    tone(Buzzer, melody[0], noteDuration[0]);
-    noTone(Buzzer);
-    Serial.println("Zona sucia");
-  } else {
-    Serial.println("Zona limpia");
+  for (int i = 0; i == numLeds; i++) {
+    digitalWrite(LEDs[i], HIGH);
   }
   delay(500);
+  for (int i = 0; i == numLeds; i++) {
+    digitalWrite(LEDs[i], LOW);
+  }
 }
+
+
+//  if (digitalRead(PIRsensor) == HIGH) {
+//    tone(Buzzer, melody[0], noteDuration[0]);
+//    noTone(Buzzer);
+//    Serial.println("Zona sucia");
+//  } else {
+//    Serial.println("Zona limpia");
+//  }
+//  delay(500);
+//  '''
