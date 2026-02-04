@@ -1,0 +1,148 @@
+//Final project Material//
+
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <DHT.h>
+
+// OLED
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+// DHT11
+#define DHTPIN 25
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+// Pines
+int LEDs[] = {32, 33, 26, 27};
+int numLeds = 4;
+#define BZR_PIN 22
+#define NOTE_C4 262
+const int melody[] = { NOTE_C4 };
+int noteDuration[] = {500};
+#define PIR_PIN 5
+#define BTN_PIN 21
+
+// Limites para sensor DHT11
+#define LIM_TEMP 30.0
+#define LIM_HUM 70.0
+
+// Controles para boton
+bool estado_actual = false;
+
+// Apuntador
+// * <-- Sirve para declarar el puntero
+// & <-- Para obtener la direccion en memoria de lo que estemos apuntando.
+void (*modoActual)();
+
+
+
+void setup() {
+  Wire.begin(18, 19);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+
+  dht.begin();
+  for (int i = 0; i < numLeds; i++){
+    pinMode(LEDs[i], OUTPUT);
+  }
+  pinMode(BZR_PIN, OUTPUT);
+
+  pinMode(PIR_PIN, INPUT);
+  pinMode(BTN_PIN, INPUT_PULLUP);
+
+  modoActual = sensorDHT; //Monitoreo inicial
+
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  Serial.begin(115200);
+}
+
+void loop() {
+  switch_sensores();
+  modoActual();
+}
+
+void switch_sensores(){
+  static bool StatusAnterior = HIGH;
+  bool estadoActual = digitalRead(BTN_PIN);
+
+  if (StatusAnterior == HIGH && estadoActual == LOW){
+    if (modoActual == sensorDHT){
+      modoActual = sensorPIR;
+    } else {
+      modoActual = sensorDHT;
+    }
+    display.clearDisplay();
+    delay(200);
+  }
+  StatusAnterior = estadoActual;
+}
+
+void sensorPIR(){
+  digitalWrite(LEDs[0], HIGH);
+  digitalWrite(LEDs[1], LOW);
+  digitalWrite(LEDs[2], LOW);
+  digitalWrite(LEDs[3], LOW);
+  bool movimiento = digitalRead(PIR_PIN);
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.setTextSize(1);
+  display.println("Modo: PIR");
+
+  if (movimiento) {
+    display.println("Movimiento!");
+    tone(BZR_PIN, melody[0], noteDuration[0]);
+    noTone(BZR_PIN);
+    delay(500);
+  } else {
+    display.println("Sin movimiento");
+    noTone(BZR_PIN);
+  }
+
+  display.display();
+  delay(300);
+  noTone(BZR_PIN);
+}
+
+
+void sensorDHT() {
+  digitalWrite(LEDs[1], HIGH);
+  digitalWrite(LEDs[0], LOW);
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.setTextSize(1);
+  display.println("Modo: DHT11");
+
+  if (isnan(t) || isnan(h)) {
+    display.println("Error sensor");
+    digitalWrite(LEDs[3], HIGH);
+    
+    digitalWrite(LEDs[2], HIGH);
+  } else {
+    display.print("Temp: ");
+    display.print(t, 1);
+    display.println(" C");
+
+    display.print("Hum: ");
+    display.print(h, 1);
+    display.println(" %");
+
+    if (t > LIM_TEMP || h > LIM_HUM) {
+      digitalWrite(LEDs[3], HIGH);
+      digitalWrite(LEDs[2], LOW);
+    } else {
+      digitalWrite(LEDs[3], LOW);
+      digitalWrite(LEDs[2], HIGH);
+    }
+  }
+
+  display.display();
+  delay(1000);
+}
