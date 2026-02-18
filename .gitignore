@@ -1,0 +1,2 @@
+#Retirar todos los ejecutables que no poseen sentido
+*.exe
