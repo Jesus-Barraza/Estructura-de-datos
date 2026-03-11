@@ -1,0 +1,15 @@
+Answer the following questions.
+1. What fundamental characteristics define a queue data dstructure and why is it considered FIFO (First In, First Out)?
+- QUEUE is defined like a list, it's origin derivates for french (with the same writing) that leads to the formation of people in order to get their event. Since the first one to get in there is usually the first one to be attended it's considered within the FIFO characteristics 
+
+2. What advantages does using a queue offer for managing events in an emergency system compared to other structures like stacks or linked lists?
+- They send the emergencies by the time they come, ensuring the information to be sent by date and thus, avoiding long-termed errors 
+
+3. How are the enqueue and dequeue operations implemented in this example, and how do they ensure that events are processed in the correct order?
+- Enqueue adds the events at the tail of the list, dequeue reads the events from the head (the start of the list) to the tail (the end of the list)
+
+4. What potential problems might you encounter when managing a queue in an embedded system with limited resources (e.g., queue overflow), and what strategies could you use to mitigate them?
+- might generate problems like system overflow, stopping other processes for happening. To avoid that, you must delete the queue list before that happens.
+
+5. How could you adapt or extend the implementation of the queue to handle events with different priority levels or to integrate with other systems (such as network communication) in a real-world environment?
+- Adding a weighted or other menus (to see more events at the time) could help with that
