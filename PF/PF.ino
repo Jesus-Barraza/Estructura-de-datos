@@ -12,15 +12,9 @@ const int IN4 = 33;
 const int ENA = 13;
 const int ENB = 12;
 
-// PWM Settings for older ESP32 Core
-const int freq = 5000;
-const int resolution = 8; 
-const int canalA = 0; // PWM Channel 0
-const int canalB = 1; // PWM Channel 1
-
 // Velocidades
-int velocidadBase = 200;
-int velocidadCurva = 95;
+int velocidadBase = 180;
+int velocidadCurva = 5;
 
 void setup() {
   pinMode(sensorIzq, INPUT);
@@ -31,12 +25,8 @@ void setup() {
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
 
-  // Old Style PWM Setup
-  ledcSetup(canalA, freq, resolution);
-  ledcSetup(canalB, freq, resolution);
-  
-  ledcAttachPin(ENA, canalA);
-  ledcAttachPin(ENB, canalB);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
 
   Serial.begin(115200);
 }
@@ -44,47 +34,62 @@ void setup() {
 void moverAdelante() {
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
+
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 
-  ledcWrite(canalA, velocidadBase); // Notice we use the CHANNEL, not the PIN
-  ledcWrite(canalB, velocidadBase);
+  analogWrite(ENA, velocidadBase);
+  analogWrite(ENB, velocidadBase);
 }
 
 void curvaIzquierda() {
   digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  digitalWrite(IN2, HIGH);  // Motor izq adelante
 
-  ledcWrite(canalA, velocidadCurva);
-  ledcWrite(canalB, velocidadBase);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);  // Motor der adelante
+
+  analogWrite(ENA, velocidadCurva);  // Izq LENTO
+  analogWrite(ENB, velocidadBase);   // Der RÁPIDO → gira a la izquierda
 }
 
 void curvaDerecha() {
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);  // Motor izq adelante
 
-  ledcWrite(canalA, velocidadBase);
-  ledcWrite(canalB, velocidadCurva);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);  // Motor der adelante
+
+  analogWrite(ENA, velocidadBase);   // Izq RÁPIDO → gira a la derecha
+  analogWrite(ENB, velocidadCurva);  // Der LENTO
 }
 
 void detener() {
-  ledcWrite(canalA, 0);
-  ledcWrite(canalB, 0);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
 }
 
 void loop() {
-  int izq = digitalRead(sensorIzq);
-  int der = digitalRead(sensorDer);
+  // Leer varias veces y promediar para estabilizar
+  int izq = 0, der = 0, mid = 0;
+  for(int i = 0; i < 5; i++) {
+    izq += digitalRead(sensorIzq);
+    der += digitalRead(sensorDer);
+    mid += digitalRead(sensorEx);
+    delay(2);
+  }
+  izq = izq / 5;
+  der = der / 5;
+  mid = mid / 5;
 
-  Serial.print(izq);
-  Serial.print(" ");
+  Serial.print(izq); Serial.print(" ");
+  Serial.print(mid); Serial.print(" ");
   Serial.println(der);
 
-  if (izq == 0 && der == 0) {
+  if (mid == 1 && izq == 0 && der == 0) {
+    moverAdelante();
+  }
+  else if (izq == 0 && der == 0) {
     moverAdelante();
   }
   else if (izq == 1 && der == 0) {
@@ -92,6 +97,9 @@ void loop() {
   }
   else if (izq == 0 && der == 1) {
     curvaDerecha();
+  }
+  else if (izq == 1 && mid == 1 && der == 1) {
+    detener();
   }
   else {
     detener();
